@@ -72,7 +72,12 @@ func (m Model) View() string {
 
 	// Current input line (if not loading)
 	if !m.Loading {
-		lines = append(lines, "> "+m.Input+"█")
+		if m.Input == "" {
+			// Show hint in light grey when no input yet (marker for special handling)
+			lines = append(lines, "hint:> █ Enter = Accept, ESC = Cancel")
+		} else {
+			lines = append(lines, "> "+m.Input+"█")
+		}
 	}
 
 	// Internal scrolling: if more than widgetHeight lines, show only the last ones
@@ -116,6 +121,26 @@ func (m Model) View() string {
 	}
 
 	for _, line := range lines {
+		// Handle hint line specially
+		if strings.HasPrefix(line, "hint:") {
+			hintContent := strings.TrimPrefix(line, "hint:")
+			// "> █" in normal color, rest in light grey, all on grey background
+			visibleLen := lipgloss.Width(hintContent)
+			padding := width - visibleLen
+			if padding < 0 {
+				padding = 0
+			}
+			result.WriteString(bgOn)
+			result.WriteString("> █ ")
+			result.WriteString("\033[38;5;242m") // Light grey for hint text
+			result.WriteString("Enter = Accept, ESC = Cancel")
+			result.WriteString(bgOff)
+			result.WriteString(bgOn)
+			result.WriteString(strings.Repeat(" ", padding))
+			result.WriteString(bgOff)
+			result.WriteString("\n")
+			continue
+		}
 		// Calculate visible length
 		visibleLen := lipgloss.Width(line)
 		padding := width - visibleLen
