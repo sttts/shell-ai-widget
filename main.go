@@ -55,9 +55,6 @@ func main() {
 	}
 	defer ttyFile.Close()
 
-	// Save cursor position (draw starting at current line)
-	fmt.Fprint(ttyFile, "\033[s")      // Save cursor position
-
 	// Track height for dynamic growth (starts at 0, dynamic insert handles growth)
 	currentHeight := 0
 
@@ -73,9 +70,11 @@ func main() {
 
 	m := finalModel.(tui.Model)
 
-	// Delete widget lines and restore
-	fmt.Fprint(ttyFile, "\033[u")      // Restore cursor position
-	fmt.Fprintf(ttyFile, "\033[%dM", currentHeight) // Delete tracked lines
+	// Clean up: move up by rendered height - 1, then clear to end of screen
+	if currentHeight > 1 {
+		fmt.Fprintf(ttyFile, "\033[%dA", currentHeight-1) // Move up
+	}
+	fmt.Fprint(ttyFile, "\033[J") // Clear from cursor to end of screen
 
 	// Output the final buffer to stdout
 	if m.Accepted {
