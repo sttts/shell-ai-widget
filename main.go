@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/sttts/zsh-ai-widget/config"
-	"github.com/sttts/zsh-ai-widget/tui"
+	"github.com/sttts/shell-ai-widget/config"
+	"github.com/sttts/shell-ai-widget/tui"
 )
 
 func main() {

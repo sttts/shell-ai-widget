@@ -1,4 +1,4 @@
-module github.com/sttts/zsh-ai-widget
+module github.com/sttts/shell-ai-widget
 
 go 1.25.5
 

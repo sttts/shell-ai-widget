@@ -82,7 +82,7 @@ func Load() (*Config, error) {
 func getConfigPath() string {
 	// Check XDG config dir first
 	if xdgConfig := os.Getenv("XDG_CONFIG_HOME"); xdgConfig != "" {
-		path := filepath.Join(xdgConfig, "zsh-ai-widget", "config.toml")
+		path := filepath.Join(xdgConfig, "shell-ai-widget", "config.toml")
 		if _, err := os.Stat(path); err == nil {
 			return path
 		}
@@ -94,7 +94,7 @@ func getConfigPath() string {
 		return ""
 	}
 
-	path := filepath.Join(home, ".config", "zsh-ai-widget", "config.toml")
+	path := filepath.Join(home, ".config", "shell-ai-widget", "config.toml")
 	if _, err := os.Stat(path); err == nil {
 		return path
 	}

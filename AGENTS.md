@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-This document outlines standards for the **zsh-ai-widget** project, a Go-based TUI using Bubble Tea and lipgloss.
+This document outlines standards for the **shell-ai-widget** project, a Go-based TUI using Bubble Tea and lipgloss.
 
 ## Dependencies
 
@@ -42,12 +42,12 @@ This document outlines standards for the **zsh-ai-widget** project, a Go-based T
 
 - Never commit API keys or credentials
 - Use environment variables (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) or config file
-- The config file at `~/.config/zsh-ai-widget/config.toml` should not be committed
+- The config file at `~/.config/shell-ai-widget/config.toml` should not be committed
 
 ## Building
 
 ```bash
-go build -o zsh-ai-widget .
+go build -o shell-ai-widget .
 go test ./...
 gofmt -w .
 ```

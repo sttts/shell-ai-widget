@@ -3,7 +3,7 @@ package ai
 import (
 	"context"
 
-	"github.com/sttts/zsh-ai-widget/config"
+	"github.com/sttts/shell-ai-widget/config"
 )
 
 // Message represents a chat message
