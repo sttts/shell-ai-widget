@@ -26,9 +26,9 @@ func NewOpenAIClient(apiKey, model string) (*OpenAIClient, error) {
 }
 
 type openAIRequest struct {
-	Model       string              `json:"model"`
-	Messages    []openAIMessage     `json:"messages"`
-	Temperature float64             `json:"temperature"`
+	Model       string          `json:"model"`
+	Messages    []openAIMessage `json:"messages"`
+	Temperature float64         `json:"temperature"`
 }
 
 type openAIMessage struct {

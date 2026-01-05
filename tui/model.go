@@ -22,15 +22,15 @@ type ChatMessage struct {
 
 // Model is the bubbletea model for the TUI
 type Model struct {
-	Buffer          string             // Current command buffer
-	OriginalBuffer  string             // Original buffer to restore on cancel
-	TerminalContext string             // Recent terminal output
-	Cwd             string             // Current working directory
-	ChatHistory     []ChatMessage      // Chat history
-	Input           string             // Current input text
-	Loading         bool               // Whether we're waiting for AI response
-	Error           string             // Error message to display
-	Accepted        bool               // Whether the user accepted the result
+	Buffer          string        // Current command buffer
+	OriginalBuffer  string        // Original buffer to restore on cancel
+	TerminalContext string        // Recent terminal output
+	Cwd             string        // Current working directory
+	ChatHistory     []ChatMessage // Chat history
+	Input           string        // Current input text
+	Loading         bool          // Whether we're waiting for AI response
+	Error           string        // Error message to display
+	Accepted        bool          // Whether the user accepted the result
 	Config          *config.Config
 	aiClient        ai.Client
 	Shimmer         Shimmer

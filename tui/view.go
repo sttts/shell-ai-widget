@@ -18,23 +18,23 @@ var (
 
 	// User input style: dim grey with > prompt
 	userPromptStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("243")).
-		Background(lipgloss.Color("236"))
+			Foreground(lipgloss.Color("243")).
+			Background(lipgloss.Color("236"))
 
 	// AI response style: light grey, 2-space indent
 	aiResponseStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("250")).
-		Background(lipgloss.Color("236"))
+			Foreground(lipgloss.Color("250")).
+			Background(lipgloss.Color("236"))
 
 	// Input prompt style
 	inputPromptStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("243")).
-		Background(lipgloss.Color("236"))
+				Foreground(lipgloss.Color("243")).
+				Background(lipgloss.Color("236"))
 
 	// Error style
 	errorStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("196")).
-		Background(lipgloss.Color("236"))
+			Foreground(lipgloss.Color("196")).
+			Background(lipgloss.Color("236"))
 )
 
 func (m Model) View() string {
