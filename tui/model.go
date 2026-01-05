@@ -4,9 +4,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/sttts/zsh-ai-widget/ai"
 	"github.com/sttts/zsh-ai-widget/config"
 )
@@ -30,17 +28,13 @@ type Model struct {
 	Accepted        bool          // Whether the user accepted the result
 	Config          *config.Config
 	aiClient        ai.Client
-	Spinner         spinner.Model
+	Shimmer         Shimmer
 	inputBuffer     string        // Buffer for detecting escape sequences
 	HeightTracker   *int          // Pointer to track current height (shared with main)
 }
 
 // NewModel creates a new TUI model
 func NewModel(buffer, terminalContext, cwd string, cfg *config.Config, heightTracker *int) Model {
-	s := spinner.New()
-	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("243"))
-
 	return Model{
 		Buffer:          buffer,
 		OriginalBuffer:  buffer,
@@ -52,7 +46,7 @@ func NewModel(buffer, terminalContext, cwd string, cfg *config.Config, heightTra
 		Error:           "",
 		Accepted:        false,
 		Config:          cfg,
-		Spinner:         s,
+		Shimmer:         NewShimmer(),
 		HeightTracker:   heightTracker,
 	}
 }
@@ -85,10 +79,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.aiClient = msg.client
 		return m, nil
 
-	case spinner.TickMsg:
-		var cmd tea.Cmd
-		m.Spinner, cmd = m.Spinner.Update(msg)
-		return m, cmd
+	case ShimmerMsg:
+		if m.Loading {
+			var cmd tea.Cmd
+			m.Shimmer, cmd = m.Shimmer.Update(msg)
+			return m, cmd
+		}
+		return m, nil
 
 	case tea.KeyMsg:
 		switch {
@@ -124,7 +121,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Loading = true
 			m.Error = ""
 
-			return m, tea.Batch(m.Spinner.Tick, m.sendToAI())
+			// Set shimmer text and start animation
+			m.Shimmer.SetText("> " + input)
+
+			return m, tea.Batch(m.Shimmer.Tick(), m.sendToAI())
 
 		case msg.Type == tea.KeyBackspace:
 			if len(m.Input) > 0 {

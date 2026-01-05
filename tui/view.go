@@ -53,12 +53,12 @@ func (m Model) View() string {
 	// Render chat history
 	for i, msg := range m.ChatHistory {
 		if msg.Role == "user" {
-			line := "> " + msg.Content
-			// Show spinner after the last user message if loading
+			// Show shimmer effect on last user message if loading
 			if m.Loading && i == len(m.ChatHistory)-1 {
-				line += " " + m.Spinner.View()
+				lines = append(lines, m.Shimmer.View())
+			} else {
+				lines = append(lines, "> "+msg.Content)
 			}
-			lines = append(lines, line)
 		} else {
 			// Light green ⏺ for bot response: 38;5;119 = light green
 			lines = append(lines, "\033[38;5;119m⏺\033[0m "+msg.Content)
