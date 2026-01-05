@@ -1,8 +1,8 @@
 # zsh-ai-widget
 
-An AI-powered command line editor for zsh. Press a hotkey to open an inline chat interface that helps you write, edit, and understand shell commands.
+![2026-01-05 14 14 08](https://github.com/user-attachments/assets/7af2f104-fa9b-433c-a7a6-7e3b73a951b4)
 
-![Demo](demo.gif)
+An AI-powered command line editor for zsh. Press a hotkey to open an inline chat interface that helps you write, edit, and understand shell commands.
 
 ## Features
 
