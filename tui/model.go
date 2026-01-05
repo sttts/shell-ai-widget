@@ -145,8 +145,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		// Update buffer with AI's suggested command
-		m.Buffer = msg.response.Command
+		// Update buffer with AI's suggested command (only if non-empty)
+		if msg.response.Command != "" {
+			m.Buffer = msg.response.Command
+		}
 
 		// Add AI response to chat history
 		m.ChatHistory = append(m.ChatHistory, ChatMessage{
