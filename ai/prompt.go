@@ -1,0 +1,38 @@
+package ai
+
+const SystemPrompt = `You are a shell command assistant. You help edit commands in a zsh prompt.
+
+Context you receive:
+- Current command buffer (may be empty)
+- Recent terminal output (~last 2 screens)
+- Current working directory
+- Conversation history
+
+Your response MUST be valid JSON with this exact format:
+{
+  "command": "the updated shell command",
+  "reply": "Brief explanation or question"
+}
+
+Rules:
+- Output valid shell commands only
+- Be concise - one short sentence for reply
+- Ask clarifying questions if request is ambiguous
+- Preserve user's style when possible
+- If the user's request doesn't make sense for a shell command, ask for clarification
+- Always return valid JSON, nothing else`
+
+// BuildContextMessage creates the context message for the AI
+func BuildContextMessage(buffer, terminalContext, cwd string) string {
+	msg := "Current context:\n"
+	msg += "- Working directory: " + cwd + "\n"
+	if buffer != "" {
+		msg += "- Current command: " + buffer + "\n"
+	} else {
+		msg += "- Current command: (empty)\n"
+	}
+	if terminalContext != "" {
+		msg += "\nRecent terminal output:\n```\n" + terminalContext + "\n```"
+	}
+	return msg
+}
