@@ -60,7 +60,8 @@ func (m Model) View() string {
 			}
 			lines = append(lines, line)
 		} else {
-			lines = append(lines, "  "+msg.Content)
+			// Light green ⏺ for bot response: 38;5;119 = light green
+			lines = append(lines, "\033[38;5;119m⏺\033[0m "+msg.Content)
 		}
 	}
 
@@ -79,13 +80,13 @@ func (m Model) View() string {
 		lines = lines[len(lines)-widgetHeight:]
 	}
 
-	// Calculate new height (1 to 5 lines)
-	newHeight := len(lines)
-	if newHeight > widgetHeight {
-		newHeight = widgetHeight
+	// Calculate new height (chat lines + 1 for buffer line)
+	newHeight := len(lines) + 1 // +1 for the buffer line below
+	if newHeight > widgetHeight+1 {
+		newHeight = widgetHeight + 1
 	}
-	if newHeight < 1 {
-		newHeight = 1
+	if newHeight < 2 {
+		newHeight = 2 // At minimum: 1 input line + 1 buffer line
 	}
 
 	// Render each line with dark grey background at full width
@@ -114,22 +115,36 @@ func (m Model) View() string {
 		*m.HeightTracker = newHeight
 	}
 
-	for i, line := range lines {
+	for _, line := range lines {
 		// Calculate visible length
 		visibleLen := lipgloss.Width(line)
 		padding := width - visibleLen
 		if padding < 0 {
 			padding = 0
 		}
-		// Full line with background
-		result.WriteString(bgOn)
-		result.WriteString(line)
-		result.WriteString(strings.Repeat(" ", padding))
-		result.WriteString(bgOff)
-		if i < len(lines)-1 {
-			result.WriteString("\n")
+		// User lines (starting with ">") get grey background, AI lines get standard
+		if strings.HasPrefix(line, ">") {
+			result.WriteString(bgOn)
+			result.WriteString(line)
+			result.WriteString(strings.Repeat(" ", padding))
+			result.WriteString(bgOff)
+		} else {
+			result.WriteString(line)
+			result.WriteString(strings.Repeat(" ", padding))
 		}
+		result.WriteString("\n")
 	}
+
+	// Buffer line (6th line) with standard background, overwrites prompt
+	// Green bold ❯ prompt: \033[1;32m = bold green
+	result.WriteString("\033[1;32m❯\033[0m ")
+	result.WriteString(m.Buffer)
+	visibleLen := 2 + len(m.Buffer) // "❯ " + buffer
+	padding := width - visibleLen
+	if padding < 0 {
+		padding = 0
+	}
+	result.WriteString(strings.Repeat(" ", padding)) // Clear rest of line
 
 	return result.String()
 }

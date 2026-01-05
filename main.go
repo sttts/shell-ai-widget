@@ -55,12 +55,11 @@ func main() {
 	}
 	defer ttyFile.Close()
 
-	// Insert 1 line initially, save position
-	fmt.Fprint(ttyFile, "\033[L")      // Insert 1 blank line (pushes prompt down)
+	// Save cursor position (draw starting at current line)
 	fmt.Fprint(ttyFile, "\033[s")      // Save cursor position
 
-	// Track height for dynamic growth
-	currentHeight := 1
+	// Track height for dynamic growth (starts at 0, dynamic insert handles growth)
+	currentHeight := 0
 
 	// Create and run the TUI
 	model := tui.NewModel(buffer, terminalContext, cwd, cfg, &currentHeight)
