@@ -2,6 +2,7 @@ package ai
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -46,7 +47,7 @@ type anthropicResponse struct {
 	} `json:"error"`
 }
 
-func (c *AnthropicClient) Chat(messages []Message, buffer, terminalContext, cwd string) (*Response, error) {
+func (c *AnthropicClient) Chat(ctx context.Context, messages []Message, buffer, terminalContext, cwd string) (*Response, error) {
 	// Build the messages array (Anthropic uses a different format)
 	anthropicMessages := []anthropicMessage{
 		{Role: "user", Content: BuildContextMessage(buffer, terminalContext, cwd)},
@@ -72,7 +73,7 @@ func (c *AnthropicClient) Chat(messages []Message, buffer, terminalContext, cwd 
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", "https://api.anthropic.com/v1/messages", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://api.anthropic.com/v1/messages", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}

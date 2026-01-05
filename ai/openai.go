@@ -2,6 +2,7 @@ package ai
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -46,7 +47,7 @@ type openAIResponse struct {
 	} `json:"error"`
 }
 
-func (c *OpenAIClient) Chat(messages []Message, buffer, terminalContext, cwd string) (*Response, error) {
+func (c *OpenAIClient) Chat(ctx context.Context, messages []Message, buffer, terminalContext, cwd string) (*Response, error) {
 	// Build the messages array
 	openAIMessages := []openAIMessage{
 		{Role: "system", Content: SystemPrompt},
@@ -72,7 +73,7 @@ func (c *OpenAIClient) Chat(messages []Message, buffer, terminalContext, cwd str
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}

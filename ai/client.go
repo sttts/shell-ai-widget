@@ -1,6 +1,8 @@
 package ai
 
 import (
+	"context"
+
 	"github.com/sttts/zsh-ai-widget/config"
 )
 
@@ -19,7 +21,7 @@ type Response struct {
 // Client is the interface for AI providers
 type Client interface {
 	// Chat sends a message and returns the AI's response
-	Chat(messages []Message, buffer, terminalContext, cwd string) (*Response, error)
+	Chat(ctx context.Context, messages []Message, buffer, terminalContext, cwd string) (*Response, error)
 }
 
 // NewClient creates a new AI client based on config
