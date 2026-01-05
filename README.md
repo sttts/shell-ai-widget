@@ -4,7 +4,7 @@
 
 AI-powered inline command editor for zsh triggered by Shift+Cmd+K, with terminal context awareness.
 
-<img src="https://github.com/user-attachments/assets/7af2f104-fa9b-433c-a7a6-7e3b73a951b4" width="75%">
+<img src="https://github.com/user-attachments/assets/29de76d5-fd2b-4c80-94b1-436754e87f97" width="75%">
 
 ## Features
 
