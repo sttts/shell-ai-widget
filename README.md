@@ -235,6 +235,10 @@ go build -o zsh-ai-widget .
 - [lipgloss](https://github.com/charmbracelet/lipgloss) - Styling
 - [go-openai](https://github.com/sashabaranov/go-openai) - OpenAI client
 
+## Disclaimer
+
+This project was vibe coded with [Claude](https://claude.ai).
+
 ## License
 
-MIT
+Apache 2.0
