@@ -76,7 +76,8 @@ func (m Model) View() string {
 			// Show hint in light grey when no input yet (marker for special handling)
 			lines = append(lines, "hint:> █ Enter = Accept, ESC = Cancel")
 		} else {
-			lines = append(lines, "> "+m.Input+"█")
+			// Wrap input text to terminal width
+			lines = append(lines, wrapInput(m.Input, width)...)
 		}
 	}
 
@@ -141,12 +142,29 @@ func (m Model) View() string {
 			result.WriteString("\n")
 			continue
 		}
+		// Handle input continuation lines (">>" marker -> display as " ")
+		if strings.HasPrefix(line, ">>") {
+			displayLine := "  " + strings.TrimPrefix(line, ">>")
+			visibleLen := lipgloss.Width(displayLine)
+			padding := width - visibleLen
+			if padding < 0 {
+				padding = 0
+			}
+			result.WriteString(bgOn)
+			result.WriteString(displayLine)
+			result.WriteString(strings.Repeat(" ", padding))
+			result.WriteString(bgOff)
+			result.WriteString("\n")
+			continue
+		}
+
 		// Calculate visible length
 		visibleLen := lipgloss.Width(line)
 		padding := width - visibleLen
 		if padding < 0 {
 			padding = 0
 		}
+
 		// User lines (starting with ">") get grey background, AI lines get standard
 		if strings.HasPrefix(line, ">") {
 			result.WriteString(bgOn)
@@ -172,4 +190,74 @@ func (m Model) View() string {
 	result.WriteString(strings.Repeat(" ", padding)) // Clear rest of line
 
 	return result.String()
+}
+
+// wrapInput wraps input text to fit within terminal width.
+// First line uses "> " prefix, continuation lines use ">>" marker (rendered as "  ").
+// Cursor "█" is appended at the very end.
+func wrapInput(input string, width int) []string {
+	prefix := "> "
+	contMarker := ">>"  // Marker for continuation (rendered as "  " with background)
+	contDisplay := "  " // What continuation actually displays as (aligns with "> ")
+	cursor := "█"
+
+	// Available width for text (excluding prefix/continuation display)
+	firstLineWidth := width - lipgloss.Width(prefix) - lipgloss.Width(cursor)
+	contLineWidth := width - lipgloss.Width(contDisplay) - lipgloss.Width(cursor)
+
+	if firstLineWidth < 10 {
+		firstLineWidth = 10
+	}
+	if contLineWidth < 10 {
+		contLineWidth = 10
+	}
+
+	// If input fits on one line, return as-is
+	if lipgloss.Width(input) <= firstLineWidth {
+		return []string{prefix + input + cursor}
+	}
+
+	var lines []string
+	runes := []rune(input)
+
+	// First line
+	firstLine, runes := takeRunesForWidth(runes, firstLineWidth)
+	lines = append(lines, prefix+firstLine)
+
+	// Continuation lines (use marker, will be rendered as "  ")
+	for len(runes) > 0 {
+		// Skip leading spaces to avoid extra indentation
+		for len(runes) > 0 && runes[0] == ' ' {
+			runes = runes[1:]
+		}
+		if len(runes) == 0 {
+			break
+		}
+		line, rest := takeRunesForWidth(runes, contLineWidth)
+		lines = append(lines, contMarker+line)
+		runes = rest
+	}
+
+	// Always add cursor to the last line
+	lines[len(lines)-1] += cursor
+
+	return lines
+}
+
+// takeRunesForWidth extracts runes from the slice that fit within maxWidth.
+// Returns the extracted string and the remaining runes.
+func takeRunesForWidth(runes []rune, maxWidth int) (string, []rune) {
+	var result []rune
+	currentWidth := 0
+
+	for i, r := range runes {
+		charWidth := lipgloss.Width(string(r))
+		if currentWidth+charWidth > maxWidth {
+			return string(result), runes[i:]
+		}
+		result = append(result, r)
+		currentWidth += charWidth
+	}
+
+	return string(result), nil
 }
