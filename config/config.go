@@ -12,6 +12,7 @@ type Config struct {
 	OpenAI    OpenAIConfig    `toml:"openai"`
 	Anthropic AnthropicConfig `toml:"anthropic"`
 	UI        UIConfig        `toml:"ui"`
+	Tools     ToolsConfig     `toml:"tools"`
 }
 
 type AIConfig struct {
@@ -32,6 +33,11 @@ type UIConfig struct {
 	ContextLines int `toml:"context_lines"`
 }
 
+type ToolsConfig struct {
+	EnableWebSearch   bool `toml:"enable_web_search"`
+	EnableCommandHelp bool `toml:"enable_command_help"`
+}
+
 // DefaultConfig returns a config with sensible defaults
 func DefaultConfig() *Config {
 	return &Config{
@@ -46,6 +52,10 @@ func DefaultConfig() *Config {
 		},
 		UI: UIConfig{
 			ContextLines: 100,
+		},
+		Tools: ToolsConfig{
+			EnableWebSearch:   true,
+			EnableCommandHelp: true,
 		},
 	}
 }

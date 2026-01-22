@@ -16,8 +16,10 @@ type escCooldownMsg struct{}
 
 // ChatMessage represents a message in the chat history
 type ChatMessage struct {
-	Role    string // "user" or "assistant"
-	Content string
+	Role       string         // "user" or "assistant"
+	Content    string         // Text content
+	ToolCalls  []ai.ToolCall  // Tool calls made by assistant
+	ToolResult *ai.ToolResult // Tool result (for tool messages)
 }
 
 // Model is the bubbletea model for the TUI
@@ -39,6 +41,8 @@ type Model struct {
 	EscCooldown     bool               // Whether ESC is in cooldown (can't close)
 	PendingInput    string             // Input saved before sending to AI (for cancellation)
 	cancelAI        context.CancelFunc // Function to cancel ongoing AI request
+	ToolExecutor    *ai.ToolExecutor   // Tool executor
+	ExecutingTool   *ai.ToolCall       // Currently executing tool (for display)
 }
 
 // NewModel creates a new TUI model
@@ -56,6 +60,7 @@ func NewModel(buffer, terminalContext, cwd string, cfg *config.Config, heightTra
 		Config:          cfg,
 		Shimmer:         NewShimmer(),
 		HeightTracker:   heightTracker,
+		ToolExecutor:    ai.NewToolExecutor(cfg.Tools.EnableWebSearch, cfg.Tools.EnableCommandHelp),
 	}
 }
 
@@ -64,6 +69,12 @@ type aiResponseMsg struct {
 	response  *ai.Response
 	err       error
 	cancelled bool
+}
+
+// toolResultMsg is sent when tool executions complete
+type toolResultMsg struct {
+	results   []ai.ToolResult // Results for all tool calls
+	toolCalls []ai.ToolCall   // The original tool calls from the AI
 }
 
 func (m Model) Init() tea.Cmd {
@@ -116,6 +127,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.cancelAI = nil
 				}
 				m.Loading = false
+				m.ExecutingTool = nil
 				m.Input = m.PendingInput // Restore input for editing
 				// Remove the last user message from chat history
 				if len(m.ChatHistory) > 0 && m.ChatHistory[len(m.ChatHistory)-1].Role == "user" {
@@ -177,21 +189,69 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Input += " "
 		}
 
+	case toolResultMsg:
+		// Tool execution completed, add results to history and continue AI conversation
+		m.ExecutingTool = nil
+
+		// Add the assistant's tool calls to history
+		m.ChatHistory = append(m.ChatHistory, ChatMessage{
+			Role:      "assistant",
+			ToolCalls: msg.toolCalls,
+		})
+
+		// Add tool result for each tool call
+		for i := range msg.results {
+			result := msg.results[i]
+			m.ChatHistory = append(m.ChatHistory, ChatMessage{
+				Role:       "tool",
+				ToolResult: &result,
+			})
+		}
+
+		// Continue the conversation with the tool results
+		ctx, cancel := context.WithCancel(context.Background())
+		m.cancelAI = cancel
+
+		// Update shimmer to show we're thinking again
+		m.Shimmer.SetText("Thinking...")
+
+		return m, tea.Batch(m.Shimmer.Tick(), m.sendToAI(ctx))
+
 	case aiResponseMsg:
 		// Ignore cancelled requests
 		if msg.cancelled {
 			return m, nil
 		}
 
-		m.Loading = false
-		m.EscCooldown = true // Start cooldown to prevent accidental ESC close
-
 		if msg.err != nil {
+			m.Loading = false
+			m.ExecutingTool = nil
 			m.Error = msg.err.Error()
+			m.EscCooldown = true
 			return m, tea.Tick(200*time.Millisecond, func(t time.Time) tea.Msg {
 				return escCooldownMsg{}
 			})
 		}
+
+		// Check if the AI wants to call tools
+		if len(msg.response.ToolCalls) > 0 && !msg.response.Done {
+			// Show first tool in shimmer for display
+			toolCall := msg.response.ToolCalls[0]
+			m.ExecutingTool = &toolCall
+
+			// Update shimmer to show tool execution
+			icon := ai.GetDisplayIcon(toolCall)
+			text := ai.GetDisplayText(toolCall)
+			m.Shimmer.SetText(icon + " " + text)
+
+			// Execute all tools
+			return m, tea.Batch(m.Shimmer.Tick(), m.executeTools(msg.response.ToolCalls))
+		}
+
+		// No more tools, we have a final response
+		m.Loading = false
+		m.ExecutingTool = nil
+		m.EscCooldown = true // Start cooldown to prevent accidental ESC close
 
 		// Update buffer with AI's suggested command (only if non-empty)
 		if msg.response.Command != "" {
@@ -222,17 +282,38 @@ func (m Model) sendToAI(ctx context.Context) tea.Cmd {
 		// Convert chat history to AI messages
 		messages := make([]ai.Message, 0, len(m.ChatHistory))
 		for _, msg := range m.ChatHistory {
-			messages = append(messages, ai.Message{
-				Role:    msg.Role,
-				Content: msg.Content,
-			})
+			aiMsg := ai.Message{
+				Role:       msg.Role,
+				Content:    msg.Content,
+				ToolCalls:  msg.ToolCalls,
+				ToolResult: msg.ToolResult,
+			}
+			messages = append(messages, aiMsg)
 		}
 
-		response, err := m.aiClient.Chat(ctx, messages, m.Buffer, m.TerminalContext, m.Cwd)
+		toolsCfg := ai.ToolsConfig{
+			EnableWebSearch:   m.Config.Tools.EnableWebSearch,
+			EnableCommandHelp: m.Config.Tools.EnableCommandHelp,
+		}
+
+		response, err := m.aiClient.Chat(ctx, messages, m.Buffer, m.TerminalContext, m.Cwd, toolsCfg)
 		// If context was cancelled, mark as cancelled so handler ignores it
 		if ctx.Err() != nil {
 			return aiResponseMsg{cancelled: true}
 		}
 		return aiResponseMsg{response: response, err: err}
+	}
+}
+
+func (m Model) executeTools(calls []ai.ToolCall) tea.Cmd {
+	return func() tea.Msg {
+		results := make([]ai.ToolResult, len(calls))
+		for i, call := range calls {
+			results[i] = m.ToolExecutor.Execute(context.Background(), call)
+		}
+		return toolResultMsg{
+			results:   results,
+			toolCalls: calls,
+		}
 	}
 }

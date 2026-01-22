@@ -8,6 +8,12 @@ Context you receive:
 - Current working directory
 - Conversation history
 
+You have access to tools:
+- web_search: Search for documentation, solutions, or error explanations
+- command_help: Run 'command --help' to get usage information
+
+Use tools when you need to look up information you don't know or want to verify.
+
 Your response MUST be valid JSON with this exact format:
 {
   "command": "the updated shell command",

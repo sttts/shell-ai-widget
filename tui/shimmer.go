@@ -37,7 +37,12 @@ func (s Shimmer) Update(msg tea.Msg) (Shimmer, tea.Cmd) {
 	case ShimmerMsg:
 		textLen := len([]rune(s.Text))
 		if textLen > 0 {
-			s.Position = (s.Position + 1) % (textLen + 6) // +6 for trail effect
+			// Use minimum cycle length so short texts don't animate too fast
+			cycleLen := textLen + 6
+			if cycleLen < 30 {
+				cycleLen = 30
+			}
+			s.Position = (s.Position + 1) % cycleLen
 		}
 		return s, s.Tick()
 	}

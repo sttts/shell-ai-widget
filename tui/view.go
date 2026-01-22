@@ -53,15 +53,25 @@ func (m Model) View() string {
 	// Render chat history
 	for i, msg := range m.ChatHistory {
 		if msg.Role == "user" {
-			// Show shimmer effect on last user message if loading
-			if m.Loading && i == len(m.ChatHistory)-1 {
+			// Show shimmer effect on last user message if loading (and no tool calls yet)
+			if m.Loading && i == len(m.ChatHistory)-1 && m.ExecutingTool == nil {
 				lines = append(lines, m.Shimmer.View())
 			} else {
 				lines = append(lines, "> "+msg.Content)
 			}
-		} else {
+		} else if msg.Role == "assistant" && msg.Content != "" {
 			// Light green ⏺ for bot response: 38;5;119 = light green
 			lines = append(lines, "\033[38;5;119m⏺\033[0m "+msg.Content)
+		}
+		// Skip tool calls and tool results in display (they're internal)
+	}
+
+	// Show shimmer for tool execution or continued thinking
+	if m.Loading && (m.ExecutingTool != nil || len(m.ChatHistory) > 0) {
+		// Check if we're past the initial user message phase
+		lastIsUser := len(m.ChatHistory) > 0 && m.ChatHistory[len(m.ChatHistory)-1].Role == "user"
+		if !lastIsUser {
+			lines = append(lines, m.Shimmer.View())
 		}
 	}
 
