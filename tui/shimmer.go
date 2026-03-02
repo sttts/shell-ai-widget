@@ -10,6 +10,14 @@ import (
 // ShimmerMsg is sent on each shimmer tick
 type ShimmerMsg time.Time
 
+const (
+	ansiReset         = "\033[0m"
+	ansiShimmerBright = "\033[1;97m"
+	ansiShimmerHigh   = "\033[1;37m"
+	ansiShimmerMid    = "\033[38;5;250m"
+	ansiShimmerBase   = "\033[38;5;244m"
+)
+
 // Shimmer is a model that renders text with a pulsing highlight effect
 type Shimmer struct {
 	Text     string
@@ -71,23 +79,18 @@ func (s Shimmer) View() string {
 			dist = -dist
 		}
 
-		// Apply brightness based on distance from shimmer center
 		switch {
 		case dist == 0:
-			// Brightest - white
-			result.WriteString("\033[97m")
+			result.WriteString(ansiShimmerBright)
 		case dist == 1:
-			// Very bright
-			result.WriteString("\033[37m")
+			result.WriteString(ansiShimmerHigh)
 		case dist == 2:
-			// Slightly bright
-			result.WriteString("\033[38;5;250m")
+			result.WriteString(ansiShimmerMid)
 		default:
-			// Normal - dim grey
-			result.WriteString("\033[38;5;243m")
+			result.WriteString(ansiShimmerBase)
 		}
 		result.WriteRune(r)
 	}
-	result.WriteString("\033[0m")
+	result.WriteString(ansiReset)
 	return result.String()
 }
