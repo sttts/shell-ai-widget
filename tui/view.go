@@ -12,29 +12,26 @@ import (
 const widgetHeight = 5
 
 var (
-	// Dark grey background style for entire widget
-	bgStyle = lipgloss.NewStyle().
-		Background(lipgloss.Color("236"))
+	widgetBG = lipgloss.AdaptiveColor{Light: "255", Dark: "236"}
+	aiDotFG  = lipgloss.AdaptiveColor{Light: "28", Dark: "119"}
+	hintFG   = lipgloss.AdaptiveColor{Light: "240", Dark: "242"}
+	bufFG    = lipgloss.AdaptiveColor{Light: "28", Dark: "46"}
 
-	// User input style: dim grey with > prompt
-	userPromptStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("243")).
-			Background(lipgloss.Color("236"))
+	userLineStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.AdaptiveColor{Light: "238", Dark: "250"}).
+			Background(widgetBG)
+	userLineBGStyle = lipgloss.NewStyle().
+			Background(widgetBG)
 
-	// AI response style: light grey, 2-space indent
-	aiResponseStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("250")).
-			Background(lipgloss.Color("236"))
+	hintLineStyle = lipgloss.NewStyle().
+			Background(widgetBG)
 
-	// Input prompt style
-	inputPromptStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("243")).
-				Background(lipgloss.Color("236"))
+	hintTextStyle = lipgloss.NewStyle().
+			Foreground(hintFG).
+			Background(widgetBG)
 
-	// Error style
-	errorStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("196")).
-			Background(lipgloss.Color("236"))
+	aiDotStyle        = lipgloss.NewStyle().Foreground(aiDotFG)
+	bufferPromptStyle = lipgloss.NewStyle().Bold(true).Foreground(bufFG)
 )
 
 func (m Model) View() string {
@@ -53,15 +50,14 @@ func (m Model) View() string {
 	// Render chat history
 	for i, msg := range m.ChatHistory {
 		if msg.Role == "user" {
-			// Show shimmer effect on last user message if loading (and no tool calls yet)
+			// Show shimmer effect on last user message if loading
 			if m.Loading && i == len(m.ChatHistory)-1 && m.ExecutingTool == nil {
-				lines = append(lines, m.Shimmer.View())
+				lines = append(lines, "shimmer:"+m.Shimmer.View())
 			} else {
 				lines = append(lines, "> "+msg.Content)
 			}
 		} else if msg.Role == "assistant" && msg.Content != "" {
-			// Light green ⏺ for bot response: 38;5;119 = light green
-			lines = append(lines, "\033[38;5;119m⏺\033[0m "+msg.Content)
+			lines = append(lines, aiDotStyle.Render("⏺")+" "+msg.Content)
 		}
 		// Skip tool calls and tool results in display (they're internal)
 	}
@@ -105,11 +101,6 @@ func (m Model) View() string {
 		newHeight = 2 // At minimum: 1 input line + 1 buffer line
 	}
 
-	// Render each line with dark grey background at full width
-	// Use ANSI escape: 48;5;236 = background color 236 (dark grey)
-	bgOn := "\033[48;5;236m"
-	bgOff := "\033[0m"
-
 	var result strings.Builder
 
 	// If height increased, insert new lines at the bottom
@@ -132,6 +123,20 @@ func (m Model) View() string {
 	}
 
 	for _, line := range lines {
+		if strings.HasPrefix(line, "shimmer:") {
+			content := strings.TrimPrefix(line, "shimmer:")
+			visibleLen := lipgloss.Width(content)
+			padding := width - visibleLen
+			if padding < 0 {
+				padding = 0
+			}
+			// Preserve shimmer's animated foreground colors, apply only background/padding.
+			result.WriteString(userLineBGStyle.Render(content))
+			result.WriteString(userLineBGStyle.Render(strings.Repeat(" ", padding)))
+			result.WriteString("\n")
+			continue
+		}
+
 		// Handle hint line specially
 		if strings.HasPrefix(line, "hint:") {
 			hintContent := strings.TrimPrefix(line, "hint:")
@@ -141,14 +146,9 @@ func (m Model) View() string {
 			if padding < 0 {
 				padding = 0
 			}
-			result.WriteString(bgOn)
-			result.WriteString("> █ ")
-			result.WriteString("\033[38;5;242m") // Light grey for hint text
-			result.WriteString("Enter = Accept, ESC = Cancel")
-			result.WriteString(bgOff)
-			result.WriteString(bgOn)
-			result.WriteString(strings.Repeat(" ", padding))
-			result.WriteString(bgOff)
+			result.WriteString(hintLineStyle.Render("> █ "))
+			result.WriteString(hintTextStyle.Render("Enter = Accept, ESC = Cancel"))
+			result.WriteString(hintLineStyle.Render(strings.Repeat(" ", padding)))
 			result.WriteString("\n")
 			continue
 		}
@@ -160,10 +160,8 @@ func (m Model) View() string {
 			if padding < 0 {
 				padding = 0
 			}
-			result.WriteString(bgOn)
-			result.WriteString(displayLine)
-			result.WriteString(strings.Repeat(" ", padding))
-			result.WriteString(bgOff)
+			result.WriteString(userLineBGStyle.Render(displayLine))
+			result.WriteString(userLineBGStyle.Render(strings.Repeat(" ", padding)))
 			result.WriteString("\n")
 			continue
 		}
@@ -177,10 +175,8 @@ func (m Model) View() string {
 
 		// User lines (starting with ">") get grey background, AI lines get standard
 		if strings.HasPrefix(line, ">") {
-			result.WriteString(bgOn)
-			result.WriteString(line)
-			result.WriteString(strings.Repeat(" ", padding))
-			result.WriteString(bgOff)
+			result.WriteString(userLineStyle.Render(line))
+			result.WriteString(userLineStyle.Render(strings.Repeat(" ", padding)))
 		} else {
 			result.WriteString(line)
 			result.WriteString(strings.Repeat(" ", padding))
@@ -189,8 +185,8 @@ func (m Model) View() string {
 	}
 
 	// Buffer line (6th line) with standard background, overwrites prompt
-	// Green bold ❯ prompt: \033[1;32m = bold green
-	result.WriteString("\033[1;32m❯\033[0m ")
+	result.WriteString(bufferPromptStyle.Render("❯"))
+	result.WriteString(" ")
 	result.WriteString(m.Buffer)
 	visibleLen := 2 + len(m.Buffer) // "❯ " + buffer
 	padding := width - visibleLen
