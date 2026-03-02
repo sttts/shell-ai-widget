@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/sttts/zsh-ai-widget/config"
+	"github.com/sttts/shell-ai-widget/config"
 )
 
 // extractJSON extracts a JSON object from text that may contain other content

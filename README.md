@@ -1,8 +1,8 @@
-# zsh-ai-widget
+# shell-ai-widget
 
-[![CI](https://github.com/sttts/zsh-ai-widget/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/sttts/zsh-ai-widget/actions/workflows/ci.yml)
+[![CI](https://github.com/sttts/shell-ai-widget/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/sttts/shell-ai-widget/actions/workflows/ci.yml)
 
-AI-powered inline command editor for zsh triggered by Shift+Cmd+K, with terminal context awareness.
+AI-powered inline command editor for zsh/fish triggered by Shift+Cmd+K, with terminal context awareness.
 
 <img src="https://github.com/user-attachments/assets/29de76d5-fd2b-4c80-94b1-436754e87f97" width="75%">
 
@@ -19,7 +19,7 @@ AI-powered inline command editor for zsh triggered by Shift+Cmd+K, with terminal
 
 - [Go](https://golang.org/) 1.21+ (for building)
 - [Ghostty](https://ghostty.org/) terminal (for keybind integration)
-- zsh shell
+- zsh or fish shell
 - OpenAI API key (or Anthropic API key)
 
 ## Installation
@@ -27,16 +27,16 @@ AI-powered inline command editor for zsh triggered by Shift+Cmd+K, with terminal
 ### 1. Build the binary
 
 ```bash
-git clone https://github.com/sttts/zsh-ai-widget.git
-cd zsh-ai-widget
-go build -o ~/.bin/zsh-ai-widget .
+git clone https://github.com/sttts/shell-ai-widget.git
+cd shell-ai-widget
+go build -o ~/.bin/shell-ai-widget .
 ```
 
 Make sure `~/.bin` is in your `$PATH`, or install to a different location.
 
 ### 2. Create the config file
 
-Create `~/.config/zsh-ai-widget/config.toml`:
+Create `~/.config/shell-ai-widget/config.toml`:
 
 ```toml
 [ai]
@@ -62,49 +62,27 @@ export OPENAI_API_KEY="sk-..."
 export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
-### 3. Add the zsh widget
+### 3. Add the shell widget
 
-Create `~/.zshrc.d/ai-cmd-edit.zsh` (or add to your `.zshrc`):
+#### Zsh
 
-```zsh
-# AI Command Editor Widget
-# Triggered by Shift+Cmd+K via Ghostty escape sequence
-
-_ai_cmd_edit_widget() {
-    local original_buffer="$BUFFER"
-
-    # Call the AI widget binary
-    local result
-    result="$(~/.bin/zsh-ai-widget --buffer="$BUFFER" 2>/dev/null)"
-    local exit_code=$?
-
-    if [[ $exit_code -eq 0 ]]; then
-        # Accepted - use the new buffer
-        BUFFER="$result"
-        CURSOR=${#BUFFER}
-    else
-        # Cancelled - restore original buffer
-        BUFFER="$original_buffer"
-        CURSOR=${#BUFFER}
-    fi
-
-    zle reset-prompt
-}
-
-# Register the widget
-zle -N _ai_cmd_edit_widget
-
-# Bind to ESC k (sent by Ghostty on Shift+Cmd+K)
-bindkey '\ek' _ai_cmd_edit_widget
-```
-
-If using a `.zshrc.d` directory, make sure it's sourced in your `.zshrc`:
+Copy or source the widget in your `.zshrc`:
 
 ```zsh
-for file in ~/.zshrc.d/*.zsh; do
-    source "$file"
-done
+source /path/to/shell-ai-widget/shell/zsh/ai-cmd-edit.zsh
 ```
+
+Or copy it to `~/.zshrc.d/ai-cmd-edit.zsh` if using a `.zshrc.d` directory.
+
+#### Fish
+
+Copy or source the widget in your fish config:
+
+```fish
+source /path/to/shell-ai-widget/shell/fish/ai-cmd-edit.fish
+```
+
+Or copy it to `~/.config/fish/conf.d/ai-cmd-edit.fish`.
 
 ### 4. Configure Ghostty keybind
 
@@ -115,7 +93,7 @@ Add to your Ghostty config (`~/.config/ghostty/config` or on macOS `~/Library/Ap
 keybind = cmd+shift+k=text:\x1bk
 ```
 
-This sends the escape sequence `ESC k` when you press Shift+Cmd+K, which triggers the zsh widget.
+This sends the escape sequence `ESC k` when you press Shift+Cmd+K, which triggers the shell widget.
 
 ### 5. Reload configuration
 
@@ -195,7 +173,7 @@ keybind = cmd+shift+k=write_scrollback_file:/tmp/scrollback.txt,text:\x1bk
 Then modify the zsh widget to pass the context:
 
 ```zsh
-result="$(~/.bin/zsh-ai-widget --buffer="$BUFFER" --context-file=/tmp/scrollback.txt 2>/dev/null)"
+result="$(~/.bin/shell-ai-widget --buffer="$BUFFER" --context-file=/tmp/scrollback.txt 2>/dev/null)"
 ```
 
 ## Architecture
@@ -214,7 +192,7 @@ result="$(~/.bin/zsh-ai-widget --buffer="$BUFFER" --context-file=/tmp/scrollback
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ Go Binary (zsh-ai-widget)                                   │
+│ Go Binary (shell-ai-widget)                                   │
 │  - Renders TUI with bubbletea                               │
 │  - Manages chat with AI provider                            │
 │  - Outputs final command to stdout                          │
@@ -224,9 +202,9 @@ result="$(~/.bin/zsh-ai-widget --buffer="$BUFFER" --context-file=/tmp/scrollback
 ## Building from Source
 
 ```bash
-git clone https://github.com/sttts/zsh-ai-widget.git
-cd zsh-ai-widget
-go build -o zsh-ai-widget .
+git clone https://github.com/sttts/shell-ai-widget.git
+cd shell-ai-widget
+go build -o shell-ai-widget .
 ```
 
 ### Dependencies

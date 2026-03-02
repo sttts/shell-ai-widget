@@ -7,8 +7,8 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/sttts/zsh-ai-widget/ai"
-	"github.com/sttts/zsh-ai-widget/config"
+	"github.com/sttts/shell-ai-widget/ai"
+	"github.com/sttts/shell-ai-widget/config"
 )
 
 // escCooldownMsg is sent when ESC cooldown expires

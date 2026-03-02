@@ -103,7 +103,7 @@ The widget draws directly in your terminal:
 
 ## Configuration
 
-Configuration file: `~/.config/zsh-ai-widget/config.toml`
+Configuration file: `~/.config/shell-ai-widget/config.toml`
 
 ```toml
 [ai]
@@ -160,7 +160,7 @@ context_lines = 100  # lines of scrollback to send
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Go Binary (zsh-ai-widget)                                   │
+│ Go Binary (shell-ai-widget)                                   │
 │  - TUI with bubbletea + lipgloss                            │
 │  - Manages chat state and rendering                         │
 │  - Calls OpenAI/Anthropic APIs                              │
