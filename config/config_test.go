@@ -82,3 +82,17 @@ func TestValidateCodexCLIConfigFailsWhenMissing(t *testing.T) {
 		t.Fatal("expected error, got nil")
 	}
 }
+
+func TestLoadOpenRouterAPIKeyFromEnv(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	t.Setenv("OPENROUTER_API_KEY", "or-key")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("load config: %v", err)
+	}
+
+	if cfg.OpenRouter.APIKey != "or-key" {
+		t.Fatalf("openrouter api key = %q, want or-key", cfg.OpenRouter.APIKey)
+	}
+}
