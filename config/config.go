@@ -10,12 +10,13 @@ import (
 )
 
 type Config struct {
-	AI        AIConfig        `toml:"ai"`
-	OpenAI    OpenAIConfig    `toml:"openai"`
-	Anthropic AnthropicConfig `toml:"anthropic"`
-	CodexCLI  CodexCLIConfig  `toml:"codex_cli"`
-	UI        UIConfig        `toml:"ui"`
-	Tools     ToolsConfig     `toml:"tools"`
+	AI         AIConfig         `toml:"ai"`
+	OpenAI     OpenAIConfig     `toml:"openai"`
+	OpenRouter OpenRouterConfig `toml:"openrouter"`
+	Anthropic  AnthropicConfig  `toml:"anthropic"`
+	CodexCLI   CodexCLIConfig   `toml:"codex_cli"`
+	UI         UIConfig         `toml:"ui"`
+	Tools      ToolsConfig      `toml:"tools"`
 }
 
 type AIConfig struct {
@@ -23,6 +24,11 @@ type AIConfig struct {
 }
 
 type OpenAIConfig struct {
+	APIKey string `toml:"api_key"`
+	Model  string `toml:"model"`
+}
+
+type OpenRouterConfig struct {
 	APIKey string `toml:"api_key"`
 	Model  string `toml:"model"`
 }
@@ -55,6 +61,9 @@ func DefaultConfig() *Config {
 		OpenAI: OpenAIConfig{
 			Model: "gpt-4o-mini",
 		},
+		OpenRouter: OpenRouterConfig{
+			Model: "openai/gpt-4o-mini",
+		},
 		Anthropic: AnthropicConfig{
 			Model: "claude-3-5-haiku-latest",
 		},
@@ -82,6 +91,7 @@ func Load() (*Config, error) {
 	if configPath == "" {
 		// No config file found, use defaults with env vars
 		cfg.OpenAI.APIKey = os.Getenv("OPENAI_API_KEY")
+		cfg.OpenRouter.APIKey = os.Getenv("OPENROUTER_API_KEY")
 		cfg.Anthropic.APIKey = os.Getenv("ANTHROPIC_API_KEY")
 		return cfg, validate(cfg)
 	}
@@ -94,6 +104,9 @@ func Load() (*Config, error) {
 	// Override with env vars if config values are empty
 	if cfg.OpenAI.APIKey == "" {
 		cfg.OpenAI.APIKey = os.Getenv("OPENAI_API_KEY")
+	}
+	if cfg.OpenRouter.APIKey == "" {
+		cfg.OpenRouter.APIKey = os.Getenv("OPENROUTER_API_KEY")
 	}
 	if cfg.Anthropic.APIKey == "" {
 		cfg.Anthropic.APIKey = os.Getenv("ANTHROPIC_API_KEY")

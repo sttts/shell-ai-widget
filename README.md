@@ -20,7 +20,7 @@ AI-powered inline command editor for zsh/fish triggered by Shift+Cmd+K, with ter
 - [Go](https://golang.org/) 1.21+ (for building)
 - [Ghostty](https://ghostty.org/) terminal (for keybind integration)
 - zsh or fish shell
-- One AI backend: OpenAI API key, Anthropic API key, or local [Codex CLI](https://github.com/openai/codex) installation/authentication
+- One AI backend: OpenAI API key, OpenRouter API key, Anthropic API key, or local [Codex CLI](https://github.com/openai/codex) installation/authentication
 
 ## Installation
 
@@ -40,11 +40,15 @@ Create `~/.config/shell-ai-widget/config.toml`:
 
 ```toml
 [ai]
-provider = "openai"  # or "anthropic" or "codex-cli"
+provider = "openai"  # or "openrouter" or "anthropic" or "codex-cli"
 
 [openai]
 api_key = ""  # Leave empty to use OPENAI_API_KEY env var
 model = "gpt-4o-mini"
+
+[openrouter]
+api_key = ""  # Leave empty to use OPENROUTER_API_KEY env var
+model = "openai/gpt-4o-mini"
 
 [anthropic]
 api_key = ""  # Leave empty to use ANTHROPIC_API_KEY env var
@@ -58,10 +62,12 @@ args = ["exec", "--json"]  # optional; default is ["exec","--json"]
 context_lines = 100
 ```
 
-Set your API key (OpenAI/Anthropic only) either in the config or as an environment variable:
+Set your API key (OpenAI/OpenRouter/Anthropic) either in the config or as an environment variable:
 
 ```bash
 export OPENAI_API_KEY="sk-..."
+# or
+export OPENROUTER_API_KEY="sk-or-..."
 # or
 export ANTHROPIC_API_KEY="sk-ant-..."
 ```
@@ -139,7 +145,7 @@ source ~/.zshrc
 
 ```toml
 [ai]
-provider = "openai"  # "openai", "anthropic", or "codex-cli"
+provider = "openai"  # "openai", "openrouter", "anthropic", or "codex-cli"
 ```
 
 ### OpenAI Settings
@@ -156,6 +162,14 @@ model = "gpt-4o-mini"  # or "gpt-4o", "gpt-4-turbo", etc.
 [anthropic]
 api_key = ""  # or use ANTHROPIC_API_KEY env var
 model = "claude-sonnet-4-20250514"  # or "claude-opus-4-20250514", etc.
+```
+
+### OpenRouter Settings
+
+```toml
+[openrouter]
+api_key = ""  # or use OPENROUTER_API_KEY env var
+model = "openai/gpt-4o-mini"  # e.g. "anthropic/claude-3.5-sonnet", etc.
 ```
 
 ### Codex CLI Settings

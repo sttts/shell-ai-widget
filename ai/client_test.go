@@ -33,3 +33,18 @@ func TestNewClientUnknownProvider(t *testing.T) {
 		t.Fatalf("error = %q, want %q", got, want)
 	}
 }
+
+func TestNewClientOpenRouter(t *testing.T) {
+	cfg := &config.Config{
+		AI:         config.AIConfig{Provider: "openrouter"},
+		OpenRouter: config.OpenRouterConfig{APIKey: "test-key", Model: "openai/gpt-4o-mini"},
+	}
+
+	client, err := NewClient(cfg)
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	if _, ok := client.(*OpenRouterClient); !ok {
+		t.Fatalf("client type = %T, want *OpenRouterClient", client)
+	}
+}

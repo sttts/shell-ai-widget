@@ -82,6 +82,8 @@ func NewClient(cfg *config.Config) (Client, error) {
 	switch cfg.AI.Provider {
 	case "openai":
 		return NewOpenAIClient(cfg.OpenAI.APIKey, cfg.OpenAI.Model)
+	case "openrouter":
+		return NewOpenRouterClient(cfg.OpenRouter.APIKey, cfg.OpenRouter.Model)
 	case "anthropic":
 		return NewAnthropicClient(cfg.Anthropic.APIKey, cfg.Anthropic.Model)
 	case "codex-cli":

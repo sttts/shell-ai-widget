@@ -5,7 +5,7 @@ function _ai_cmd_edit
     set -l original_buffer (commandline)
 
     # Call the AI widget binary
-    set -l result (command ~/.bin/shell-ai-widget --buffer="$original_buffer" --shell=fish 2>/dev/null)
+    set -l result (command shell-ai-widget --buffer="$original_buffer" --shell=fish 2>/dev/null)
     set -l exit_code $status
 
     if test $exit_code -eq 0
