@@ -6,7 +6,7 @@ _ai_cmd_edit_widget() {
 
     # Call the AI widget binary
     local result
-    result="$(~/.bin/shell-ai-widget --buffer="$BUFFER" 2>/dev/null)"
+    result="$(~/.bin/shell-ai-widget --buffer="$BUFFER" --shell=zsh 2>/dev/null)"
     local exit_code=$?
 
     if [[ $exit_code -eq 0 ]]; then

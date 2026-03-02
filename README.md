@@ -20,7 +20,7 @@ AI-powered inline command editor for zsh/fish triggered by Shift+Cmd+K, with ter
 - [Go](https://golang.org/) 1.21+ (for building)
 - [Ghostty](https://ghostty.org/) terminal (for keybind integration)
 - zsh or fish shell
-- OpenAI API key (or Anthropic API key)
+- One AI backend: OpenAI API key, Anthropic API key, or local [Codex CLI](https://github.com/openai/codex) installation/authentication
 
 ## Installation
 
@@ -40,7 +40,7 @@ Create `~/.config/shell-ai-widget/config.toml`:
 
 ```toml
 [ai]
-provider = "openai"  # or "anthropic"
+provider = "openai"  # or "anthropic" or "codex-cli"
 
 [openai]
 api_key = ""  # Leave empty to use OPENAI_API_KEY env var
@@ -50,11 +50,15 @@ model = "gpt-4o-mini"
 api_key = ""  # Leave empty to use ANTHROPIC_API_KEY env var
 model = "claude-sonnet-4-20250514"
 
+[codex_cli]
+path = ""  # Leave empty to auto-detect "codex" in PATH
+args = ["exec", "--json"]  # optional; default is ["exec","--json"]
+
 [ui]
 context_lines = 100
 ```
 
-Set your API key either in the config or as an environment variable:
+Set your API key (OpenAI/Anthropic only) either in the config or as an environment variable:
 
 ```bash
 export OPENAI_API_KEY="sk-..."
@@ -135,7 +139,7 @@ source ~/.zshrc
 
 ```toml
 [ai]
-provider = "openai"  # "openai" or "anthropic"
+provider = "openai"  # "openai", "anthropic", or "codex-cli"
 ```
 
 ### OpenAI Settings
@@ -153,6 +157,19 @@ model = "gpt-4o-mini"  # or "gpt-4o", "gpt-4-turbo", etc.
 api_key = ""  # or use ANTHROPIC_API_KEY env var
 model = "claude-sonnet-4-20250514"  # or "claude-opus-4-20250514", etc.
 ```
+
+### Codex CLI Settings
+
+```toml
+[ai]
+provider = "codex-cli"
+
+[codex_cli]
+path = ""  # optional, auto-detected from PATH when empty
+args = ["exec", "--json"]  # optional
+```
+
+With `provider = "codex-cli"`, no `OPENAI_API_KEY` is required.
 
 ### UI Settings
 
@@ -173,7 +190,7 @@ keybind = cmd+shift+k=write_scrollback_file:/tmp/scrollback.txt,text:\x1bk
 Then modify the zsh widget to pass the context:
 
 ```zsh
-result="$(~/.bin/shell-ai-widget --buffer="$BUFFER" --context-file=/tmp/scrollback.txt 2>/dev/null)"
+result="$(~/.bin/shell-ai-widget --buffer="$BUFFER" --context-file=/tmp/scrollback.txt --shell=zsh 2>/dev/null)"
 ```
 
 ## Architecture

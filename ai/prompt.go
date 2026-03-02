@@ -1,6 +1,8 @@
 package ai
 
-const SystemPrompt = `You are a shell command assistant. You help edit commands in a zsh prompt.
+import "fmt"
+
+const SystemPromptTemplate = `You are a shell command assistant. You help edit commands in a %s prompt.
 
 Context you receive:
 - Current command buffer (may be empty)
@@ -29,8 +31,9 @@ Rules:
 - Always return valid JSON, nothing else`
 
 // BuildContextMessage creates the context message for the AI
-func BuildContextMessage(buffer, terminalContext, cwd string) string {
+func BuildContextMessage(buffer, terminalContext, cwd, shell string) string {
 	msg := "Current context:\n"
+	msg += "- Shell: " + shell + "\n"
 	msg += "- Working directory: " + cwd + "\n"
 	if buffer != "" {
 		msg += "- Current command: " + buffer + "\n"
@@ -41,4 +44,11 @@ func BuildContextMessage(buffer, terminalContext, cwd string) string {
 		msg += "\nRecent terminal output:\n```\n" + terminalContext + "\n```"
 	}
 	return msg
+}
+
+func SystemPrompt(shell string) string {
+	if shell == "" {
+		shell = "zsh"
+	}
+	return fmt.Sprintf(SystemPromptTemplate, shell)
 }

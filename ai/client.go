@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/sttts/shell-ai-widget/config"
@@ -73,7 +74,7 @@ type ToolsConfig struct {
 // Client is the interface for AI providers
 type Client interface {
 	// Chat sends a message and returns the AI's response
-	Chat(ctx context.Context, messages []Message, buffer, terminalContext, cwd string, toolsCfg ToolsConfig) (*Response, error)
+	Chat(ctx context.Context, messages []Message, buffer, terminalContext, cwd, shell string, toolsCfg ToolsConfig) (*Response, error)
 }
 
 // NewClient creates a new AI client based on config
@@ -83,7 +84,9 @@ func NewClient(cfg *config.Config) (Client, error) {
 		return NewOpenAIClient(cfg.OpenAI.APIKey, cfg.OpenAI.Model)
 	case "anthropic":
 		return NewAnthropicClient(cfg.Anthropic.APIKey, cfg.Anthropic.Model)
+	case "codex-cli":
+		return NewCodexCLIClient(cfg.CodexCLI.Path, cfg.CodexCLI.Args)
 	default:
-		return NewOpenAIClient(cfg.OpenAI.APIKey, cfg.OpenAI.Model)
+		return nil, fmt.Errorf("unsupported AI provider: %s", cfg.AI.Provider)
 	}
 }
