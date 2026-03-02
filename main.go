@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,10 +15,13 @@ import (
 func main() {
 	var buffer string
 	var contextFile string
+	var shell string
 
 	flag.StringVar(&buffer, "buffer", "", "Current command line buffer")
 	flag.StringVar(&contextFile, "context-file", "", "Path to file containing terminal scrollback")
+	flag.StringVar(&shell, "shell", "", "Shell type (e.g. zsh, fish)")
 	flag.Parse()
+	shell = resolveShell(shell, os.Getenv("SHELL"))
 
 	// Load config
 	cfg, err := config.Load()
@@ -59,7 +63,7 @@ func main() {
 	currentHeight := 0
 
 	// Create and run the TUI
-	model := tui.NewModel(buffer, terminalContext, cwd, cfg, &currentHeight)
+	model := tui.NewModel(buffer, terminalContext, cwd, shell, cfg, &currentHeight)
 	p := tea.NewProgram(model, tea.WithInput(ttyFile), tea.WithOutput(ttyFile))
 
 	finalModel, err := p.Run()
@@ -84,4 +88,21 @@ func main() {
 		// Cancelled - exit with error code so zsh widget restores original
 		os.Exit(1)
 	}
+}
+
+func resolveShell(cliShell, shellEnv string) string {
+	trimmedCLI := strings.TrimSpace(cliShell)
+	if trimmedCLI != "" {
+		return trimmedCLI
+	}
+
+	trimmedEnv := strings.TrimSpace(shellEnv)
+	if trimmedEnv != "" {
+		envBase := strings.TrimSpace(filepath.Base(trimmedEnv))
+		if envBase != "" && envBase != "." && envBase != string(filepath.Separator) {
+			return envBase
+		}
+	}
+
+	return "zsh"
 }

@@ -28,6 +28,7 @@ type Model struct {
 	OriginalBuffer  string        // Original buffer to restore on cancel
 	TerminalContext string        // Recent terminal output
 	Cwd             string        // Current working directory
+	Shell           string        // Shell type, e.g. zsh/fish
 	ChatHistory     []ChatMessage // Chat history
 	Input           string        // Current input text
 	Loading         bool          // Whether we're waiting for AI response
@@ -46,12 +47,17 @@ type Model struct {
 }
 
 // NewModel creates a new TUI model
-func NewModel(buffer, terminalContext, cwd string, cfg *config.Config, heightTracker *int) Model {
+func NewModel(buffer, terminalContext, cwd, shell string, cfg *config.Config, heightTracker *int) Model {
+	if shell == "" {
+		shell = "zsh"
+	}
+
 	return Model{
 		Buffer:          buffer,
 		OriginalBuffer:  buffer,
 		TerminalContext: terminalContext,
 		Cwd:             cwd,
+		Shell:           shell,
 		ChatHistory:     []ChatMessage{},
 		Input:           "",
 		Loading:         false,
@@ -296,7 +302,7 @@ func (m Model) sendToAI(ctx context.Context) tea.Cmd {
 			EnableCommandHelp: m.Config.Tools.EnableCommandHelp,
 		}
 
-		response, err := m.aiClient.Chat(ctx, messages, m.Buffer, m.TerminalContext, m.Cwd, toolsCfg)
+		response, err := m.aiClient.Chat(ctx, messages, m.Buffer, m.TerminalContext, m.Cwd, m.Shell, toolsCfg)
 		// If context was cancelled, mark as cancelled so handler ignores it
 		if ctx.Err() != nil {
 			return aiResponseMsg{cancelled: true}

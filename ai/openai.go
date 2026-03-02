@@ -72,11 +72,11 @@ type openAIResponse struct {
 	} `json:"error"`
 }
 
-func (c *OpenAIClient) Chat(ctx context.Context, messages []Message, buffer, terminalContext, cwd string, toolsCfg ToolsConfig) (*Response, error) {
+func (c *OpenAIClient) Chat(ctx context.Context, messages []Message, buffer, terminalContext, cwd, shell string, toolsCfg ToolsConfig) (*Response, error) {
 	// Build the messages array
 	openAIMessages := []openAIMessage{
-		{Role: "system", Content: SystemPrompt},
-		{Role: "user", Content: BuildContextMessage(buffer, terminalContext, cwd)},
+		{Role: "system", Content: SystemPrompt(shell)},
+		{Role: "user", Content: BuildContextMessage(buffer, terminalContext, cwd, shell)},
 	}
 
 	// Add conversation history

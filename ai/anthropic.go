@@ -77,7 +77,7 @@ type anthropicResponse struct {
 	} `json:"error"`
 }
 
-func (c *AnthropicClient) Chat(ctx context.Context, messages []Message, buffer, terminalContext, cwd string, toolsCfg ToolsConfig) (*Response, error) {
+func (c *AnthropicClient) Chat(ctx context.Context, messages []Message, buffer, terminalContext, cwd, shell string, toolsCfg ToolsConfig) (*Response, error) {
 	// Build the messages array (Anthropic uses a different format)
 	anthropicMessages := []anthropicMessage{
 		{
@@ -85,7 +85,7 @@ func (c *AnthropicClient) Chat(ctx context.Context, messages []Message, buffer, 
 			Content: []interface{}{
 				anthropicTextContent{
 					Type: "text",
-					Text: BuildContextMessage(buffer, terminalContext, cwd),
+					Text: BuildContextMessage(buffer, terminalContext, cwd, shell),
 				},
 			},
 		},
@@ -161,7 +161,7 @@ func (c *AnthropicClient) Chat(ctx context.Context, messages []Message, buffer, 
 	reqBody := anthropicRequest{
 		Model:     c.model,
 		MaxTokens: 1024,
-		System:    SystemPrompt,
+		System:    SystemPrompt(shell),
 		Messages:  anthropicMessages,
 		Tools:     tools,
 	}
