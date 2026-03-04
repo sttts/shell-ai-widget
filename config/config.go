@@ -142,6 +142,7 @@ func getConfigPath() string {
 		if _, err := os.Stat(path); err == nil {
 			return path
 		}
+		return ""
 	}
 
 	// Fall back to ~/.config
