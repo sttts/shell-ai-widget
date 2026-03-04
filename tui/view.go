@@ -80,7 +80,7 @@ func (m Model) View() string {
 	if !m.Loading {
 		if m.Input == "" {
 			// Show hint in light grey when no input yet (marker for special handling)
-			lines = append(lines, "hint:> █ Enter = Accept, ESC = Cancel")
+			lines = append(lines, "hint:> █ Enter = Accept, Ctrl-R = Run, ESC = Cancel")
 		} else {
 			// Wrap input text to terminal width
 			lines = append(lines, wrapInput(m.Input, width)...)
@@ -149,7 +149,7 @@ func (m Model) View() string {
 				padding = 0
 			}
 			result.WriteString(hintLineStyle.Render("> █ "))
-			result.WriteString(hintTextStyle.Render("Enter = Accept, ESC = Cancel"))
+			result.WriteString(hintTextStyle.Render("Enter = Accept, Ctrl-R = Run, ESC = Cancel"))
 			result.WriteString(hintLineStyle.Render(strings.Repeat(" ", padding)))
 			result.WriteString("\n")
 			continue

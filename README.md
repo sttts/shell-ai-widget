@@ -119,8 +119,9 @@ source ~/.zshrc
 1. **Open**: Press `Shift+Cmd+K` (or your configured hotkey)
 2. **Type**: Enter your request (e.g., "list files sorted by size")
 3. **Chat**: Continue the conversation to refine the command
-4. **Accept**: Press `Enter` on empty input, or `Shift+Cmd+K` again
-5. **Cancel**: Press `ESC` or `Ctrl+C` to restore original command
+4. **Test**: Press `Ctrl+R` to run the current command without closing the widget
+5. **Accept**: Press `Enter` on empty input, or `Shift+Cmd+K` again
+6. **Cancel**: Press `ESC` or `Ctrl+C` to restore original command
 
 ### UI Elements
 
@@ -135,6 +136,7 @@ source ~/.zshrc
 | Key | Action |
 |-----|--------|
 | `Enter` | Send message to AI, or accept if input empty |
+| `Ctrl+R` | Run current command and keep widget open |
 | `Shift+Cmd+K` | Accept current command and close |
 | `ESC` | Cancel and restore original command |
 | `Ctrl+C` | Cancel and restore original command |
