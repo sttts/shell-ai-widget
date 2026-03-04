@@ -92,10 +92,12 @@ func (m Model) View() string {
 		lines = lines[len(lines)-widgetHeight:]
 	}
 
-	// Calculate new height (chat lines + 1 for buffer line)
-	newHeight := len(lines) + 1 // +1 for the buffer line below
-	if newHeight > widgetHeight+1 {
-		newHeight = widgetHeight + 1
+	bufferLines := wrapBuffer(m.Buffer, width)
+
+	// Calculate new height (chat lines + buffer lines)
+	newHeight := len(lines) + len(bufferLines)
+	if newHeight > widgetHeight+len(bufferLines) {
+		newHeight = widgetHeight + len(bufferLines)
 	}
 	if newHeight < 2 {
 		newHeight = 2 // At minimum: 1 input line + 1 buffer line
@@ -184,16 +186,28 @@ func (m Model) View() string {
 		result.WriteString("\n")
 	}
 
-	// Buffer line (6th line) with standard background, overwrites prompt
-	result.WriteString(bufferPromptStyle.Render("❯"))
-	result.WriteString(" ")
-	result.WriteString(m.Buffer)
-	visibleLen := 2 + len(m.Buffer) // "❯ " + buffer
-	padding := width - visibleLen
-	if padding < 0 {
-		padding = 0
+	// Buffer line(s) with standard background, overwrites prompt
+	for i, line := range bufferLines {
+		visibleLen := lipgloss.Width(line)
+		padding := width - visibleLen
+		if padding < 0 {
+			padding = 0
+		}
+		if strings.HasPrefix(line, "❯ ") {
+			result.WriteString(bufferPromptStyle.Render("❯"))
+			result.WriteString(" ")
+			result.WriteString(strings.TrimPrefix(line, "❯ "))
+		} else if strings.HasPrefix(line, "  ") {
+			result.WriteString("  ")
+			result.WriteString(strings.TrimPrefix(line, "  "))
+		} else {
+			result.WriteString(line)
+		}
+		result.WriteString(strings.Repeat(" ", padding)) // Clear rest of line
+		if i < len(bufferLines)-1 {
+			result.WriteString("\n")
+		}
 	}
-	result.WriteString(strings.Repeat(" ", padding)) // Clear rest of line
 
 	return result.String()
 }
@@ -266,4 +280,39 @@ func takeRunesForWidth(runes []rune, maxWidth int) (string, []rune) {
 	}
 
 	return string(result), nil
+}
+
+// wrapBuffer wraps the command buffer to terminal width.
+// First line uses "❯ " prefix, continuation lines use two spaces.
+func wrapBuffer(buffer string, width int) []string {
+	prefix := "❯ "
+	contDisplay := "  "
+
+	firstLineWidth := width - lipgloss.Width(prefix)
+	contLineWidth := width - lipgloss.Width(contDisplay)
+
+	if firstLineWidth < 1 {
+		firstLineWidth = 1
+	}
+	if contLineWidth < 1 {
+		contLineWidth = 1
+	}
+
+	if lipgloss.Width(buffer) <= firstLineWidth {
+		return []string{prefix + buffer}
+	}
+
+	var lines []string
+	runes := []rune(buffer)
+
+	firstLine, runes := takeRunesForWidth(runes, firstLineWidth)
+	lines = append(lines, prefix+firstLine)
+
+	for len(runes) > 0 {
+		line, rest := takeRunesForWidth(runes, contLineWidth)
+		lines = append(lines, contDisplay+line)
+		runes = rest
+	}
+
+	return lines
 }
