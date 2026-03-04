@@ -6,6 +6,7 @@ type keyMap struct {
 	Send   key.Binding
 	Accept key.Binding
 	Cancel key.Binding
+	Test   key.Binding
 }
 
 var keys = keyMap{
@@ -20,5 +21,9 @@ var keys = keyMap{
 	Cancel: key.NewBinding(
 		key.WithKeys("esc", "ctrl+c"),
 		key.WithHelp("esc", "cancel"),
+	),
+	Test: key.NewBinding(
+		key.WithKeys("ctrl+r", "alt+enter"),
+		key.WithHelp("ctrl+r", "run"),
 	),
 }

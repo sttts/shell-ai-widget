@@ -2,6 +2,8 @@ package tui
 
 import (
 	"context"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -83,6 +85,11 @@ type toolResultMsg struct {
 	toolCalls []ai.ToolCall   // The original tool calls from the AI
 }
 
+// testRunMsg is sent when a test command finishes
+type testRunMsg struct {
+	err error
+}
+
 func (m Model) Init() tea.Cmd {
 	// Initialize the AI client
 	return func() tea.Msg {
@@ -123,6 +130,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Shift+Cmd+K (appears as alt+k / ESC k) - accept and quit
 			m.Accepted = true
 			return m, tea.Quit
+
+		case key.Matches(msg, keys.Test):
+			if m.Loading {
+				return m, nil
+			}
+			if strings.TrimSpace(m.Buffer) == "" {
+				return m, nil
+			}
+
+			cmd := exec.Command(m.Shell, "-lc", m.Buffer)
+			cmd.Dir = m.Cwd
+			cmd.Env = os.Environ()
+
+			return m, tea.ExecProcess(cmd, func(err error) tea.Msg {
+				return testRunMsg{err: err}
+			})
 
 		case msg.Type == tea.KeyCtrlC || msg.Type == tea.KeyEscape:
 			// During loading: cancel AI request, restore input for editing
@@ -274,6 +297,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Tick(200*time.Millisecond, func(t time.Time) tea.Msg {
 			return escCooldownMsg{}
 		})
+
+	case testRunMsg:
+		if msg.err != nil {
+			m.Error = msg.err.Error()
+		}
+		return m, nil
 	}
 
 	return m, nil
